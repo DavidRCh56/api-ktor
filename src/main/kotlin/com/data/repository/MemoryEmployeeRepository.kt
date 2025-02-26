@@ -34,7 +34,7 @@ class MemoryEmployeeRepository : EmployeeInterface {
         return if (emp!= null) {
             false
         } else{
-                EmployeeData.listEmployee.addLast(employee)
+               // EmployeeData.listEmployee.addLast(employee)
                 true
             }
     }
