@@ -25,5 +25,5 @@ CREATE TABLE IF NOT EXISTS recetas (
 
 -- Insertar recetas de prueba
 INSERT INTO recetas (userId, name, descripcion, ingredientes, calories) VALUES
-(1, 'paella', 'Paella con mariscos y vegetales.', 'Arroz, mariscos, vegetales', '450 kcal'),
+(1, 'paella', 'Paella con mariscos y vegetales.', 'Arroz, mariscos, vegetales', '400 kcal'),
 (1, 'Risotto de Setas', 'Arroz cremoso con setas y queso parmesano.', 'Arroz, setas, caldo, parmesano, vino blanco', '500 kcal');
