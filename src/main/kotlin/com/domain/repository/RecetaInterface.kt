@@ -1,7 +1,5 @@
 package com.domain.repository
 
-import com.domain.models.Salary
-import com.domain.models.UpdateEmployee
 import com.domain.models.recetas.Receta
 import com.domain.models.recetas.UpdateReceta
 
