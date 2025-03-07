@@ -1,16 +1,18 @@
 package com.ktor
 
+import io.ktor.server.application.Application
+import io.ktor.server.routing.*
+import io.ktor.server.response.*
+import io.ktor.server.request.*
+import io.ktor.http.*
+import io.ktor.server.http.content.*
+import io.ktor.server.auth.*
+import com.domain.usecase.*
 import com.domain.models.recetas.Receta
 import com.domain.models.recetas.UpdateReceta
 import com.domain.models.usuarios.Usuario
-import com.domain.usecase.*
-import io.ktor.http.*
-import io.ktor.server.application.*
-import io.ktor.server.response.*
-import io.ktor.server.routing.*
-import io.ktor.server.http.content.*
-import io.ktor.server.request.*
 
+// Función para configurar las rutas de la aplicación
 fun Application.configureRouting(
     getAllRecetasUseCase: GetAllRecetasUseCase,
     getRecetaByIdUseCase: GetRecetaByIdUseCase,
@@ -25,24 +27,25 @@ fun Application.configureRouting(
             call.respondText("Servidor iniciado correctamente!")
         }
 
-        // Recursos estáticos
         staticResources("/static", "static")
 
-        // Rutas de recetas
-        recetaRoutes(
-            getAllRecetasUseCase,
-            getRecetaByIdUseCase,
-            createRecetaUseCase,
-            updateRecetaUseCase,
-            deleteRecetaUseCase
-        )
-
-        // Rutas de autenticación de usuario
+        // Rutas de autenticación (registro y login) sin protección
         authRoutes(registerUseCase, loginUseCase)
+
+        // Rutas protegidas con JWT
+        authenticate("auth-jwt") {
+            recetaRoutes(
+                getAllRecetasUseCase,
+                getRecetaByIdUseCase,
+                createRecetaUseCase,
+                updateRecetaUseCase,
+                deleteRecetaUseCase
+            )
+        }
     }
 }
 
-// Definición de las rutas para recetas (mantiene las anteriores)
+// Función de extensión para las rutas de recetas
 fun Route.recetaRoutes(
     getAllRecetasUseCase: GetAllRecetasUseCase,
     getRecetaByIdUseCase: GetRecetaByIdUseCase,
@@ -51,8 +54,6 @@ fun Route.recetaRoutes(
     deleteRecetaUseCase: DeleteRecetaUseCase
 ) {
     route("/recetas") {
-
-        // Obtener todas las recetas
         get {
             val recetas = getAllRecetasUseCase()
             if (recetas.isEmpty()) {
@@ -62,33 +63,26 @@ fun Route.recetaRoutes(
             }
         }
 
-        // Obtener una receta por ID
         get("/{id}") {
             val id = call.parameters["id"]?.toIntOrNull()
             if (id == null) {
                 call.respond(HttpStatusCode.BadRequest, "El ID proporcionado no es válido")
                 return@get
             }
-            val recetas = getRecetaByIdUseCase(id)
-            if (recetas == null) {
+            val receta = getRecetaByIdUseCase(id)
+            if (receta == null) {
                 call.respond(HttpStatusCode.NotFound, "Receta con ID $id no encontrada")
             } else {
-                call.respond(recetas)
+                call.respond(receta)
             }
         }
 
-        // Crear una nueva receta
         post("/add") {
             val receta = call.receive<Receta>()
             val createdReceta = createRecetaUseCase(receta)
-            if (createdReceta != null) {
-                call.respond(HttpStatusCode.Created, "Receta creada con éxito")
-            } else {
-                call.respond(HttpStatusCode.InternalServerError, "Error al crear la receta")
-            }
+            call.respond(HttpStatusCode.Created, "Receta creada con éxito")
         }
 
-        // Actualizar una receta existente
         put("/{id}") {
             val id = call.parameters["id"]?.toIntOrNull()
             if (id == null) {
@@ -115,55 +109,45 @@ fun Route.recetaRoutes(
             }
         }
 
-        // Eliminar una receta por ID
         delete("/{id}") {
             val id = call.parameters["id"]?.toIntOrNull()
             if (id == null) {
                 call.respond(HttpStatusCode.BadRequest, "El ID proporcionado no es válido")
                 return@delete
             }
+            // Primero obtenemos la receta para poder borrarla
             val recetaToDelete = getRecetaByIdUseCase(id)
             if (recetaToDelete == null) {
                 call.respond(HttpStatusCode.NotFound, "Receta con ID $id no encontrada")
                 return@delete
             }
-            val isDeleted = try {
+            try {
                 deleteRecetaUseCase(recetaToDelete)
-                true
-            } catch (e: Exception) {
-                false
-            }
-            if (isDeleted) {
                 call.respond(HttpStatusCode.OK, "Receta eliminada con éxito")
-            } else {
-                call.respond(HttpStatusCode.NotFound, "Receta con ID $id no encontrada")
+            } catch (e: Exception) {
+                call.respond(HttpStatusCode.InternalServerError, "Error al eliminar la receta")
             }
         }
     }
 }
 
-// Rutas para Login y Registro
+// Función de extensión para las rutas de autenticación
 fun Route.authRoutes(
     registerUseCase: RegisterUseCase,
     loginUseCase: LoginUseCase
 ) {
-    // Registro de usuario
     post("/register") {
         val user = call.receive<Usuario>()
-        val isRegistered = try {
-            registerUseCase(user)
-            true
+        try {
+            // Se obtiene el JWT generado
+            val token = registerUseCase(user)
+            // Se envía el token al cliente
+            call.respond(HttpStatusCode.Created, mapOf("token" to token))
         } catch (e: Exception) {
-            false
-        }
-        if (isRegistered) {
-            call.respond(HttpStatusCode.Created, "Usuario registrado con éxito")
-        } else {
-            call.respond(HttpStatusCode.Conflict, "El usuario ya existe")
+            call.respond(HttpStatusCode.Conflict, "El usuario ya existe o ha ocurrido un error")
         }
     }
 
-    // Login de usuario
     post("/login") {
         val user = call.receive<Usuario>()
         val token = loginUseCase(user.email, user.password)

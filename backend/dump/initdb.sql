@@ -2,11 +2,12 @@
 CREATE DATABASE IF NOT EXISTS appRecetas;
 USE appRecetas;
 
--- Crear la tabla de usuarios
+-- Crear la tabla de usuarios con la columna token
 CREATE TABLE IF NOT EXISTS usuarios (
     id INT AUTO_INCREMENT PRIMARY KEY,
     email VARCHAR(50) NOT NULL UNIQUE,
-    password VARCHAR(64) NOT NULL
+    password VARCHAR(64) NOT NULL,
+    token VARCHAR(512) NULL
 );
 
 -- Insertar usuario de prueba con contraseña hasheada previamente

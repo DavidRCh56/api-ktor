@@ -5,5 +5,6 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class Usuario (
     val email: String,
-    val password: String
+    val password: String,
+    val token: String? = null
 )

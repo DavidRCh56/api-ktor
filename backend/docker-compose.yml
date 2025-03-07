@@ -13,7 +13,8 @@ services:
     volumes:
       - ./dump:/docker-entrypoint-initdb.d
       - ./conf:/etc/mysql/conf.d
-      - appRecetas_data:/var/lib/mysql
+    tmpfs:
+      - /var/lib/mysql
     networks:
       - default
 

@@ -12,6 +12,7 @@ object UsuariosTable : Table("usuarios") {
     val id = integer("id").autoIncrement()
     val email = varchar("email", 50).uniqueIndex()
     val password = varchar("password", 64)
+    val token = varchar("token", 512).nullable() // Se define como nullable
     override val primaryKey = PrimaryKey(id)
 }
 
@@ -21,17 +22,20 @@ class MemoryUsuarioRepository : UsuarioInterface {
         UsuariosTable.selectAll().map {
             Usuario(
                 email = it[UsuariosTable.email],
-                password = it[UsuariosTable.password]
+                password = it[UsuariosTable.password],
+                token = it[UsuariosTable.token]
             )
         }
     }
 
     override fun getUsuarioByEmail(email: String): Usuario? = transaction {
+        // Se utiliza select { ... } en lugar de selectAll().where { ... }
         UsuariosTable.selectAll().where { UsuariosTable.email eq email }
             .map {
                 Usuario(
                     email = it[UsuariosTable.email],
-                    password = it[UsuariosTable.password]
+                    password = it[UsuariosTable.password],
+                    token = it[UsuariosTable.token]
                 )
             }
             .firstOrNull()
@@ -41,6 +45,7 @@ class MemoryUsuarioRepository : UsuarioInterface {
         val insertResult = UsuariosTable.insert {
             it[UsuariosTable.email] = usuario.email
             it[UsuariosTable.password] = usuario.password
+            it[UsuariosTable.token] = usuario.token
         }
         insertResult.insertedCount > 0
     }
@@ -54,5 +59,11 @@ class MemoryUsuarioRepository : UsuarioInterface {
 
     override fun deleteUsuario(email: String): Boolean = transaction {
         UsuariosTable.deleteWhere { UsuariosTable.email eq email } > 0
+    }
+
+    fun updateToken(email: String, newToken: String): Boolean = transaction {
+        UsuariosTable.update({ UsuariosTable.email eq email }) {
+            it[UsuariosTable.token] = newToken
+        } > 0
     }
 }
