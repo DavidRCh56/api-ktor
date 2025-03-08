@@ -1,1 +1,1 @@
-rootProject.name = "srodenas-sample-employee2"
+rootProject.name = "api-ktor-recetas"
