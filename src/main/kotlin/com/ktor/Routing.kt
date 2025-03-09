@@ -14,7 +14,6 @@ import com.domain.security.JwtConfig
 import com.auth0.jwt.exceptions.JWTVerificationException
 import kotlinx.serialization.Serializable
 
-// Para recibir solo el token en endpoints GET (y otros)
 @Serializable
 data class TokenRequest(val token: String)
 
