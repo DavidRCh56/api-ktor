@@ -3,10 +3,10 @@ package com.data.models
 import com.domain.models.recetas.Receta
 
 object RecetaData {
-    val listaReceta = mutableListOf<Receta> (
+    val listaReceta = mutableListOf<Receta>(
         Receta(
             id = 1,
-            userId = "default",
+            userId = 1,
             name = "Paella",
             description = "Paella con mariscos y vegetales.",
             ingredients = "Arroz, mariscos, vegetales",
@@ -15,7 +15,7 @@ object RecetaData {
         ),
         Receta(
             id = 13,
-            userId = "default",
+            userId = 1,
             name = "Risotto de Setas",
             description = "Arroz cremoso con setas y queso parmesano.",
             ingredients = "Arroz, setas, caldo, parmesano, vino blanco",
@@ -23,5 +23,4 @@ object RecetaData {
             imageUrl = null
         )
     )
-
 }

@@ -5,7 +5,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class Receta(
     val id: Int? = null,
-    val userId: String,
+    val userId: Int = 0,
     val name: String,
     val description: String,
     val ingredients: String,

@@ -17,7 +17,7 @@ INSERT INTO usuarios (email, password) VALUES
 -- Crear la tabla de recetas
 CREATE TABLE IF NOT EXISTS recetas (
     id INT AUTO_INCREMENT PRIMARY KEY,
-    userId INT NOT NULL,
+    userId VARCHAR(500) NOT NULL,
     name VARCHAR(500) NOT NULL,
     descripcion VARCHAR(500) NOT NULL,
     ingredientes VARCHAR(500) NOT NULL,

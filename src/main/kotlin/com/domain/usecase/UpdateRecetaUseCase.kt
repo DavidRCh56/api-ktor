@@ -4,7 +4,6 @@ import com.domain.models.recetas.Receta
 import com.domain.models.recetas.UpdateReceta
 import com.domain.repository.RecetaInterface
 
-
 class UpdateRecetaUseCase(private val recetaRepository: RecetaInterface) {
     suspend operator fun invoke(id: Int, receta: Receta): Boolean {
         return recetaRepository.updateReceta(
@@ -17,7 +16,8 @@ class UpdateRecetaUseCase(private val recetaRepository: RecetaInterface) {
                 calories = receta.calories,
                 imageUrl = receta.imageUrl
             ),
-            id
+            id,
+            receta.userId
         )
     }
 }
