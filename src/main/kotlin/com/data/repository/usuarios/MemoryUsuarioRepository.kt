@@ -11,7 +11,7 @@ object UsuariosTable : Table("usuarios") {
     val id = integer("id").autoIncrement()
     val email = varchar("email", 50).uniqueIndex()
     val password = varchar("password", 64)
-    val token = varchar("token", 512).nullable() // Se define como nullable
+    val token = varchar("token", 512).nullable()
     override val primaryKey = PrimaryKey(id)
 }
 
@@ -40,7 +40,20 @@ class MemoryUsuarioRepository : UsuarioInterface {
             .firstOrNull()
     }
 
-    // Inserta el usuario y retorna el id generado
+    // Implementación del nuevo método para obtener usuario por ID
+    override fun getUsuarioById(id: Int): Usuario? = transaction {
+        UsuariosTable.selectAll().where { UsuariosTable.id eq id }
+            .map {
+                Usuario(
+                    id = it[UsuariosTable.id],
+                    email = it[UsuariosTable.email],
+                    password = it[UsuariosTable.password],
+                    token = it[UsuariosTable.token]
+                )
+            }
+            .firstOrNull()
+    }
+
     override fun postUsuario(usuario: Usuario): Int? = transaction {
         val insertResult = UsuariosTable.insert {
             it[email] = usuario.email

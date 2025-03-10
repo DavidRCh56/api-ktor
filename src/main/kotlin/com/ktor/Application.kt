@@ -55,7 +55,7 @@ fun Application.module() {
     val registerUseCase = RegisterUseCase(usuarioInterface)
     val loginUseCase = LoginUseCase(usuarioInterface)
 
-    // Configuración de rutas
+    // Configuración de rutas, incluyendo el usuarioInterface adicional para la verificación del token
     configureRouting(
         getAllRecetasUseCase,
         getRecetaByIdUseCase,
@@ -63,6 +63,7 @@ fun Application.module() {
         updateRecetaUseCase,
         deleteRecetaUseCase,
         registerUseCase,
-        loginUseCase
+        loginUseCase,
+        usuarioInterface
     )
 }

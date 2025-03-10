@@ -12,12 +12,16 @@ import com.domain.models.recetas.UpdateReceta
 import com.domain.models.usuarios.Usuario
 import com.domain.security.JwtConfig
 import com.auth0.jwt.exceptions.JWTVerificationException
+import com.domain.repository.UsuarioInterface
 import kotlinx.serialization.Serializable
 
-fun verifyToken(token: String): Int? {
+fun verifyToken(token: String, usuarioRepository: UsuarioInterface): Int? {
     return try {
         val decoded = JwtConfig.verifier.verify(token)
-        decoded.getClaim("id").asInt()
+        val userId = decoded.getClaim("id").asInt()
+        // Se obtiene el usuario por su ID y se compara el token almacenado con el token recibido
+        val usuario = usuarioRepository.getUsuarioById(userId)
+        if (usuario?.token == token) userId else null
     } catch (e: JWTVerificationException) {
         e.printStackTrace()
         null
@@ -31,7 +35,8 @@ fun Application.configureRouting(
     updateRecetaUseCase: UpdateRecetaUseCase,
     deleteRecetaUseCase: DeleteRecetaUseCase,
     registerUseCase: RegisterUseCase,
-    loginUseCase: LoginUseCase
+    loginUseCase: LoginUseCase,
+    usuarioInterface: UsuarioInterface     // Se inyecta el repositorio de usuarios
 ) {
     routing {
         get("/") {
@@ -68,7 +73,7 @@ fun Application.configureRouting(
             get {
                 val authHeader = call.request.headers["Authorization"]
                 val token = authHeader?.removePrefix("Bearer ") ?: ""
-                val userId = verifyToken(token)
+                val userId = verifyToken(token, usuarioInterface)
                 if (userId == null) {
                     call.respond(HttpStatusCode.Unauthorized, "Acceso no autorizado")
                     return@get
@@ -81,7 +86,7 @@ fun Application.configureRouting(
             get("/{id}") {
                 val authHeader = call.request.headers["Authorization"]
                 val token = authHeader?.removePrefix("Bearer ") ?: ""
-                val userId = verifyToken(token)
+                val userId = verifyToken(token, usuarioInterface)
                 if (userId == null) {
                     call.respond(HttpStatusCode.Unauthorized, "Acceso no autorizado")
                     return@get
@@ -105,13 +110,13 @@ fun Application.configureRouting(
                 data class RecetaRequest(val receta: Receta)
                 val authHeader = call.request.headers["Authorization"]
                 val token = authHeader?.removePrefix("Bearer ") ?: ""
-                val userId = verifyToken(token)
+                val userId = verifyToken(token, usuarioInterface)
                 if (userId == null) {
                     call.respond(HttpStatusCode.Unauthorized, "Acceso no autorizado")
                     return@post
                 }
                 val recetaRequest = call.receive<RecetaRequest>()
-                // Asigna el userId obtenido del token a la receta
+                // Se asigna el userId obtenido del token a la receta
                 val receta = recetaRequest.receta.copy(userId = userId)
                 createRecetaUseCase(receta)
                 call.respond(HttpStatusCode.Created, "Receta creada con éxito")
@@ -123,7 +128,7 @@ fun Application.configureRouting(
                 data class UpdateRecetaRequest(val updateData: UpdateReceta)
                 val authHeader = call.request.headers["Authorization"]
                 val token = authHeader?.removePrefix("Bearer ") ?: ""
-                val userId = verifyToken(token)
+                val userId = verifyToken(token, usuarioInterface)
                 if (userId == null) {
                     call.respond(HttpStatusCode.Unauthorized, "Acceso no autorizado")
                     return@put
@@ -160,7 +165,7 @@ fun Application.configureRouting(
             delete("/{id}") {
                 val authHeader = call.request.headers["Authorization"]
                 val token = authHeader?.removePrefix("Bearer ") ?: ""
-                val userId = verifyToken(token)
+                val userId = verifyToken(token, usuarioInterface)
                 if (userId == null) {
                     call.respond(HttpStatusCode.Unauthorized, "Acceso no autorizado")
                     return@delete
