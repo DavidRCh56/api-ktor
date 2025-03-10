@@ -8,8 +8,8 @@ class LoginUseCase(private val repository: UsuarioInterface) {
     suspend operator fun invoke(username: String, password: String): String? {
         val usuario = repository.getUsuarioByEmail(username)
         return if (usuario != null && PasswordHash.verify(password, usuario.password)) {
-            val (newToken, tokenId) = JwtConfig.generateToken(usuario.id.toString())
-            repository.updateToken(usuario.email, tokenId)
+            val (newToken, _) = JwtConfig.generateToken(usuario.id.toString())
+            repository.updateToken(usuario.email, newToken)
             newToken
         } else {
             null
